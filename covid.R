@@ -19,8 +19,6 @@ library(readr) # Para garantir o encoding
 #pagina <- read_html(x)
 
 
-
-
 # Puxa o arquivo
 arquivo <- "dados-abertos.csv"
 df <- read_delim(file = arquivo, delim = ";")
