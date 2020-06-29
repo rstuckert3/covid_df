@@ -7,6 +7,10 @@
 # Dados do dia 2020-06-23 12h
 
 
+# To-Do:
+# - Colocar as variáveis como fatores.
+
+
 # Pacotes:
 library(dplyr)
 library(lubridate) # Manipular datas
@@ -62,32 +66,19 @@ head(df$DataCadastro)
 df <- df %>% mutate(Comorbidade = Pneumopatia + Nefropatia + DHematologica + DistMetabolico + Imunopressao + Outros + Cardiovasculopatia)
 df <- df %>% mutate(Comorbidade = ifelse(Comorbidade == 0, 0, 1))
 
+# Cria a variável "Status", que mostra se a pessoa está recuperada,
+# se foi a óbito, ou se é um caso ativo.
+df <- df %>% 
+  mutate(Status = ifelse(EstadoSaude == "Leve", "Ativo",
+                        ifelse(EstadoSaude == "Moderado", "Ativo",
+                               ifelse(EstadoSaude == "Grave", "Ativo",
+                                      ifelse(EstadoSaude == "Não Informado", "Ativo",
+                                             ifelse(EstadoSaude == "Óbito", "Óbito", "Recuperado")))))
+        )
+table(df2$Status)
+
 # Backup
 df2 <- df
-
-
-# [NÃO TA INDO] Cria a variável "Status", que mostra se a pessoa está recuperada,
-# se foi a óbito, ou se é um caso ativo.
-#df2 <- df2 %>% mutate(Status = EstadoSaude)
-#df2 <- df2 %>% 
-#  mutate(Status = replace(Status, Status != c("Recuperado", "Óbito"), "Ativo"))
-#table(df2$Status)
-
-
-
-# Cria a variável Status, que aponta se a observação é de um caso ativo
-# (leve, moderado, grave ou Não Informado), ou um paciente recuperado ou
-# que foi a óbito.
-table(df$EstadoSaude)
-df <- df %>% 
-  mutate(Status = EstadoSaude)
-
-df <- df %>% mutate(Status = if(Status == "Leve" | Status == "Moderado" | Status == "Grave" | Status == "Não Informado"){
-    Status = "Ativo"} else {
-      Status = Status}
-    )
-
-
 
 # Número de casos de obesidade no dataframe
 sum(df$Obesidade)
