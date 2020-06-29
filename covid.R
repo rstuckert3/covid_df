@@ -6,8 +6,6 @@
 # Link para a página de extração: https://covid19.ssp.df.gov.br/extensions/covid19/covid19.html#/
 # Dados do dia 2020-06-23 12h
 
-# To Do:
-# - CRIAR variáveis "Tem comorbidade?" e "Status do paciente"
 
 # Pacotes:
 library(dplyr)
@@ -52,7 +50,7 @@ tail(df) # Fim
 class(df$DataCadastro) # Classe da coluna data
 
 
-# Corrige a coluna das datas de entrada, e a "Outras comorbidades".
+# Corrige a coluna das datas de entrada
 df <- df %>%
   mutate(DataCadastro = as.Date(DataCadastro, format = '%d/%m/%Y'))
 
@@ -60,17 +58,37 @@ df <- df %>%
 class(df$DataCadastro)
 head(df$DataCadastro)
 
+# Cria a variável Comorbidade, que mostra se a pessoa tem ou não alguma comorbidade.
+df <- df %>% mutate(Comorbidade = Pneumopatia + Nefropatia + DHematologica + DistMetabolico + Imunopressao + Outros + Cardiovasculopatia)
+df <- df %>% mutate(Comorbidade = ifelse(Comorbidade == 0, 0, 1))
+
 # Backup
 df2 <- df
 
 
+# [NÃO TA INDO] Cria a variável "Status", que mostra se a pessoa está recuperada,
+# se foi a óbito, ou se é um caso ativo.
+#df2 <- df2 %>% mutate(Status = EstadoSaude)
+#df2 <- df2 %>% 
+#  mutate(Status = replace(Status, Status != c("Recuperado", "Óbito"), "Ativo"))
+#table(df2$Status)
+
+
+
+# Cria a variável Status, que aponta se a observação é de um caso ativo
+# (leve, moderado, grave ou Não Informado), ou um paciente recuperado ou
+# que foi a óbito.
+table(df$EstadoSaude)
+df <- df %>% 
+  mutate(Status = EstadoSaude)
+
+df <- df %>% mutate(Status = if(Status == "Leve" | Status == "Moderado" | Status == "Grave" | Status == "Não Informado"){
+    Status = "Ativo"} else {
+      Status = Status}
+    )
+
+
+
 # Número de casos de obesidade no dataframe
 sum(df$Obesidade)
-
-
-df <- df %>% mutate(Comorbidade = sum(Pneumopatia, Nefropatia, `Doença Hematológica`,
-                                      `Distúrbios Metabólicos`, `Imunopressão`, Outros,
-                                      Cardiovasculopatia))
-
-
 
