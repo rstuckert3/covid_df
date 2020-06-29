@@ -69,13 +69,9 @@ df <- df %>% mutate(Comorbidade = ifelse(Comorbidade == 0, 0, 1))
 # Cria a variável "Status", que mostra se a pessoa está recuperada,
 # se foi a óbito, ou se é um caso ativo.
 df <- df %>% 
-  mutate(Status = ifelse(EstadoSaude == "Leve", "Ativo",
-                        ifelse(EstadoSaude == "Moderado", "Ativo",
-                               ifelse(EstadoSaude == "Grave", "Ativo",
-                                      ifelse(EstadoSaude == "Não Informado", "Ativo",
-                                             ifelse(EstadoSaude == "Óbito", "Óbito", "Recuperado")))))
-        )
-table(df2$Status)
+  mutate(Status = ifelse(EstadoSaude %in% c("Leve", "Moderado", "Grave", "Não Informado"),
+                         "Ativo", EstadoSaude))
+table(df$Status)
 
 # Backup
 df2 <- df
