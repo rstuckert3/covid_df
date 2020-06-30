@@ -7,10 +7,6 @@
 # Dados do dia 2020-06-23 12h
 
 
-# To-Do:
-# - Colocar as variáveis como fatores.
-
-
 # Pacotes:
 library(dplyr)
 library(lubridate) # Manipular datas
@@ -20,13 +16,21 @@ library(lubridate) # Manipular datas
 arquivo <- "dados-abertos.csv"
 link <- "https://covid19.ssp.df.gov.br/resources/dados/dados-abertos.csv"
 
+# Importa os dados. 
+# a saber, a função fread, do pacote data.table, é a mais recomendada para importação em 2020.
 df <- data.table::fread(link, encoding = "UTF-8", 
                         col.names = c("id", "Data", "DataCadastro", "Sexo",
                                       "FaixaEtaria", "RA", "UF", "EstadoSaude",
                                       "Pneumopatia", "Nefropatia", "DHematologica",
                                       "DistMetabolico", "Imunopressao", "Obesidade",
-                                      "Outros", "Cardiovasculopatia")
+                                      "Outros", "Cardiovasculopatia"),
+                        colClasses = list(factor=4:7) # Colunas 4 a 8 (Sexo até UF) como factor
 )
+
+# Verifica a importação do arquivo
+str(df) # Estrutura
+head(df) # Início
+tail(df) # Fim
 
 
 # Bota os valores das comorbidades como binários (Apresenta = 1, não apresenta / NA = 0)
@@ -47,24 +51,15 @@ df <- df %>%
   )
 
 
-# Verifica a importação do arquivo
-str(df) # Estrutura
-head(df) # Início
-tail(df) # Fim
-class(df$DataCadastro) # Classe da coluna data
-
-
-# Corrige a coluna das datas de entrada
+# Corrige a coluna das datas de entrada e cria a variável "Tem comorbidade?"
 df <- df %>%
-  mutate(DataCadastro = as.Date(DataCadastro, format = '%d/%m/%Y'))
+  mutate(DataCadastro = as.Date(DataCadastro, format = '%d/%m/%Y'),
+         Comorbidade = Pneumopatia + Nefropatia + DHematologica + DistMetabolico + Imunopressao + Outros + Cardiovasculopatia,
+         Comorbidade = ifelse(Comorbidade == 0, 0, 1))
 
 # Verificando
 class(df$DataCadastro)
 head(df$DataCadastro)
-
-# Cria a variável Comorbidade, que mostra se a pessoa tem ou não alguma comorbidade.
-df <- df %>% mutate(Comorbidade = Pneumopatia + Nefropatia + DHematologica + DistMetabolico + Imunopressao + Outros + Cardiovasculopatia)
-df <- df %>% mutate(Comorbidade = ifelse(Comorbidade == 0, 0, 1))
 
 # Cria a variável "Status", que mostra se a pessoa está recuperada,
 # se foi a óbito, ou se é um caso ativo.
@@ -73,9 +68,11 @@ df <- df %>%
                          "Ativo", EstadoSaude))
 table(df$Status)
 
+
 # Backup
 df2 <- df
 
-# Número de casos de obesidade no dataframe
-sum(df$Obesidade)
-
+# Pega a data de extração dos dados e descarta sua coluna (pois constante)
+extraction_date <- df$Data[1]
+df <- df %>%
+  select(-c("Data"))
