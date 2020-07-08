@@ -10,6 +10,10 @@
 # Pacotes:
 library(dplyr)
 library(lubridate) # Manipular datas
+library(forcats) # fct_reoder
+library(ggplot2)
+library(esquisse) # Interface pro ggplot2
+
 
 
 # Puxa o arquivo
@@ -32,6 +36,9 @@ str(df) # Estrutura
 head(df) # Início
 tail(df) # Fim
 
+# Pega a data de extração dos dados
+extraction_date <- df$Data[1] %>%
+  as.Date(format = '%d/%m/%Y')
 
 # Bota os valores das comorbidades como binários (Apresenta = 1, não apresenta / NA = 0)
 # EXPLICAÇÃO: de início, pessoas com alguma comorbidade recebiam "Sim"
@@ -51,28 +58,96 @@ df <- df %>%
   )
 
 
-# Corrige a coluna das datas de entrada e cria a variável "Tem comorbidade?"
+# Remove a coluna com a data de extração, corrige a coluna das datas de entrada,
+# e cria as variáveis "Tem comorbidade?" e "Estado ativo?"
 df <- df %>%
+  
+  select(-c("Data")) %>%
+  
   mutate(DataCadastro = as.Date(DataCadastro, format = '%d/%m/%Y'),
-         Comorbidade = Pneumopatia + Nefropatia + DHematologica + DistMetabolico + Imunopressao + Outros + Cardiovasculopatia,
-         Comorbidade = ifelse(Comorbidade == 0, 0, 1))
+         Comorbidade = case_when(Pneumopatia + Nefropatia + DHematologica + DistMetabolico + Imunopressao + Outros + Cardiovasculopatia > 0 ~ 1, TRUE ~ 0)) %>%
+  
+  mutate(Status = ifelse(EstadoSaude %in% c("Leve", "Moderado", "Grave", "Não Informado"), 
+                         "Ativo", EstadoSaude)) # Cria a variável "Status", que mostra se a pessoa está recuperada,se foi a óbito, ou se é um caso ativo.
+
+
+
+# Transforma as idades em factor e as ordena.
+str(df$FaixaEtaria)
+
 
 # Verificando
 class(df$DataCadastro)
 head(df$DataCadastro)
-
-# Cria a variável "Status", que mostra se a pessoa está recuperada,
-# se foi a óbito, ou se é um caso ativo.
-df <- df %>% 
-  mutate(Status = ifelse(EstadoSaude %in% c("Leve", "Moderado", "Grave", "Não Informado"),
-                         "Ativo", EstadoSaude))
-table(df$Status)
-
+table(df$Status) # Variável de estado do paciente
 
 # Backup
 df2 <- df
 
-# Pega a data de extração dos dados e descarta sua coluna (pois constante)
-extraction_date <- df$Data[1]
-df <- df %>%
-  select(-c("Data"))
+
+
+# Gera estatísticas agrupadas
+grouped_by_RA <- df %>% 
+  group_by(RA) %>%
+  summarise(casos = n(),
+            casos_ativos = sum(Status == "Ativo"),
+            obitos = sum(Status == "Óbito"),
+            mortalidade = obitos / casos,
+            pct_comorbidade = sum(Comorbidade == 1) / casos,
+            pct_mulheres = sum(Sexo == "Feminino")/casos,
+            pct_homens = 1 - pct_mulheres
+            )
+
+
+grouped_by_Sexo <- df %>% 
+  group_by(Sexo) %>%
+  summarise(casos = n(),
+            casos_ativos = sum(Status == "Ativo"),
+            obitos = sum(Status == "Óbito"),
+            mortalidade = obitos / casos,
+            pct_comorbidade = sum(Comorbidade == 1) / casos
+            )
+
+grouped_by_FxEtaria <- df %>% 
+  group_by(FaixaEtaria) %>%
+  summarise(casos = n(),
+            casos_ativos = sum(Status == "Ativo"),
+            obitos = sum(Status == "Óbito"),
+            pct_obitos = sum(Status == "Óbito") / sum(df$Status == "Óbito"),
+            mortalidade = obitos / casos,
+            pct_comorbidade = sum(Comorbidade == 1) / casos,
+            pct_mulheres = sum(Sexo == "Feminino")/casos,
+            pct_homens = 1 - pct_mulheres
+            )
+
+# Visualização gráfica.
+#esquisser(data = df)
+
+df %>%
+ filter(!(UF %in% "")) %>%
+ ggplot() +
+ aes(x = EstadoSaude, fill = FaixaEtaria) +
+ geom_bar(position = "fill") +
+ scale_fill_viridis_d(option = "inferno") +
+ theme_minimal()
+
+df %>%
+  filter(!(UF %in% "")) %>%
+  ggplot() +
+  aes(x = FaixaEtaria, fill = Sexo) +
+  geom_bar() +
+  scale_fill_hue() +
+  theme_minimal() +
+  facet_wrap(vars(RA))
+
+#df <- df %>%
+#  mutate(Comorbidade = as.factor(df$Comorbidade))
+
+df %>%
+  filter(!(UF %in% "")) %>%
+  ggplot() +
+  aes(x = FaixaEtaria, fill = Comorbidade) +
+  geom_bar() +
+  scale_fill_gradient() +
+  theme_minimal() +
+  facet_wrap(vars(RA))
