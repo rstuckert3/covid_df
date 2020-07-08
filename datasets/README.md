@@ -1,5 +1,5 @@
 ## dados-abertos
-Para assegurar a disponibilidade dos dados, foram baixados os dados disponíveis no dia 2020-07-08 às 12h. Cabe ressaltar que a Secretaria de Saúde do Distrito Federal (SESDF) realiza duas atualizações diárias: uma ao meio-dia, e outra às 18h.
+Para assegurar a disponibilidade dos dados, foram baixados os dados disponíveis no dia 2020-07-08 às 12:00 (UTC-3). Cabe ressaltar que a Secretaria de Saúde do Distrito Federal (SESDF) realiza duas atualizações diárias: uma às 12:00, e outra às 18:00 (UTC-3).
 Os dados mais recentes podem ser acessados no [site da Secretaria de Segurança Pública do DF](https://covid19.ssp.df.gov.br/resources/dados/dados-abertos.csv?param=[random]). 
 
 ### Colunas
