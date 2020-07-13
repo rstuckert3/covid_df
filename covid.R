@@ -4,32 +4,39 @@
 
 # Esse código foi feito para analisar os casos da covid no Distrito Federal.
 # Link para a página de extração: https://covid19.ssp.df.gov.br/extensions/covid19/covid19.html#/
-# Dados do dia 2020-06-23 12h
+# Dados do dia 2020-07-08 12:00
 
 
 # Pacotes:
 library(dplyr)
 library(lubridate) # Manipular datas
-library(forcats) # fct_reoder
 library(ggplot2)
 library(esquisse) # Interface pro ggplot2
 
 
 
 # Puxa o arquivo
-arquivo <- "dados-abertos.csv"
-link <- "https://covid19.ssp.df.gov.br/resources/dados/dados-abertos.csv"
+arquivo <- "datasets/dados-abertos.csv"
+#link <- "https://covid19.ssp.df.gov.br/resources/dados/dados-abertos.csv"
+
 
 # Importa os dados. 
 # a saber, a função fread, do pacote data.table, é a mais recomendada para importação em 2020.
-df <- data.table::fread(link, encoding = "UTF-8", 
+df <- data.table::fread(arquivo, encoding = "UTF-8", 
                         col.names = c("id", "Data", "DataCadastro", "Sexo",
                                       "FaixaEtaria", "RA", "UF", "EstadoSaude",
                                       "Pneumopatia", "Nefropatia", "DHematologica",
                                       "DistMetabolico", "Imunopressao", "Obesidade",
                                       "Outros", "Cardiovasculopatia"),
-                        colClasses = list(factor=4:7) # Colunas 4 a 8 (Sexo até UF) como factor
+                        colClasses = list(factor= c(4, 6, 7)) # Colunas Sexo, RA e UF como factors
 )
+
+# Corrige os nomes das faixas etárias e torna a variável factor.
+df <- df %>%
+  mutate(FaixaEtaria = ifelse(FaixaEtaria == "<= 19 anos", "0 a 19 anos", FaixaEtaria),
+         FaixaEtaria = ifelse(FaixaEtaria == ">= 60 anos", "60+ anos", FaixaEtaria),
+         FaixaEtaria = as.factor(FaixaEtaria))
+
 
 # Verifica a importação do arquivo
 str(df) # Estrutura
@@ -70,12 +77,6 @@ df <- df %>%
   mutate(Status = ifelse(EstadoSaude %in% c("Leve", "Moderado", "Grave", "Não Informado"), 
                          "Ativo", EstadoSaude)) # Cria a variável "Status", que mostra se a pessoa está recuperada,se foi a óbito, ou se é um caso ativo.
 
-
-
-# Transforma as idades em factor e as ordena.
-str(df$FaixaEtaria)
-
-
 # Verificando
 class(df$DataCadastro)
 head(df$DataCadastro)
@@ -85,8 +86,8 @@ table(df$Status) # Variável de estado do paciente
 df2 <- df
 
 
-
-# Gera estatísticas agrupadas
+# Gera estatísticas agrupadas...
+# ... por Região Administrativa do Distrito Federal (RA)
 grouped_by_RA <- df %>% 
   group_by(RA) %>%
   summarise(casos = n(),
@@ -98,7 +99,7 @@ grouped_by_RA <- df %>%
             pct_homens = 1 - pct_mulheres
             )
 
-
+# ... por sexo da pessoa
 grouped_by_Sexo <- df %>% 
   group_by(Sexo) %>%
   summarise(casos = n(),
@@ -108,6 +109,7 @@ grouped_by_Sexo <- df %>%
             pct_comorbidade = sum(Comorbidade == 1) / casos
             )
 
+# ...por faixa etária
 grouped_by_FxEtaria <- df %>% 
   group_by(FaixaEtaria) %>%
   summarise(casos = n(),
@@ -121,7 +123,7 @@ grouped_by_FxEtaria <- df %>%
             )
 
 # Visualização gráfica.
-#esquisser(data = df)
+esquisser(data = df)
 
 df %>%
  filter(!(UF %in% "")) %>%
@@ -129,6 +131,7 @@ df %>%
  aes(x = EstadoSaude, fill = FaixaEtaria) +
  geom_bar(position = "fill") +
  scale_fill_viridis_d(option = "inferno") +
+ labs(y = "Percentual dentre o nº total")
  theme_minimal()
 
 df %>%
@@ -143,11 +146,11 @@ df %>%
 #df <- df %>%
 #  mutate(Comorbidade = as.factor(df$Comorbidade))
 
+# Casos ativos
 df %>%
   filter(!(UF %in% "")) %>%
   ggplot() +
-  aes(x = FaixaEtaria, fill = Comorbidade) +
+  aes(x = DataCadastro, fill = Status) +
   geom_bar() +
-  scale_fill_gradient() +
-  theme_minimal() +
-  facet_wrap(vars(RA))
+  scale_fill_hue() +
+  theme_minimal()
