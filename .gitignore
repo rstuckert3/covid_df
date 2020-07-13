@@ -31,5 +31,4 @@ extract.R
 Arquivo_morto/
 Arquivo_morto/*
 # Txt
-Links_uteis.txt
-*.txt
+/*.txt
