@@ -12,3 +12,7 @@ Outros dados: http://www.coronavirus.df.gov.br/index.php/outros-dados-covid-19/#
 
 REFERÊNCIA DE NOTEBOOK:
 https://www.linkedin.com/pulse/data-science-e-covid19-analisando-dados-do-rio-de-lima-escudeiro/?fbclid=IwAR1yBy3loq2EpG_p5K7qI8XQqsC0k8DY2xqVhdwSH_WzPQten4NKSp0cXHI
+
+
+USANDO O JUPYTER NOTEBOOK:
+https://medium.com/@gabriel.stankevix/como-criar-um-documento-no-jupyter-notebook-para-r-a46fef917381
