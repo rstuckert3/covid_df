@@ -17,7 +17,8 @@ O CSV é composto das colunas abaixo:
 * Faixa Etária = faixa etária do indivíduo. Agrupada em seis categorias(<= 19 anos, 20 a 29 anos, 30 a 39 anos, 40 a 49 anos, 50 a 59 anos, >= 60 anos).
 * RA = Região Administrativa (RA) da pessoa. Apresenta 36 opções entre as RA's do Distrito Federal, mais a opção "Outros Estados", para casos de fora do DF.
 * UF = Unidade da Federação.
-* Estado de Saúde = Última informação quanto ao estado de saúde daquela pessoa (Leve, Moderado, Grave, Não Informado, Óbito, Recuperado).
+* Óbito¹ = Se a pessoa foi a óbito até a presente data ou não (Sim, Não).
+* dataPrimeirosintomas = Data em que a pessoa se recorda ter apresentado os primeiros sintomas. (%%d/%%mm/%yyyy)
 * Pneumopatia = Apresenta pneumopatia? (Sim, Não)
 * Nefropatia = Apresenta nefropatia? (Sim, Não)
 * Doença Hematológica = Apresenta doença hematológica? (Sim, Não)
@@ -26,3 +27,5 @@ O CSV é composto das colunas abaixo:
 * Obesidade = Apresenta obesidade? (Sim, Não)
 * Outros = Apresenta outras comorbidades?
 * Cardiovasculopatia = Apresenta cardiovascuolopatia? (Sim, Não)
+
+* ¹: anteriormente, a variável "Óbito" se chamada "Estado Saúde" e constava se a pessoa tinha ido a óbito, se estava internada (Leve, Moderado, Grave), se era um caso ativo, ou se estava recuperada (viva após cerca de duas semanas de contaminação). A mudança passou a valer a partir do dia 2020-07-10.
