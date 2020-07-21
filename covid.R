@@ -122,8 +122,21 @@ grouped_by_FxEtaria <- df %>%
             pct_homens = 1 - pct_mulheres
             )
 
+# ...por faixa etária
+grouped_by_Data <- df %>% 
+  group_by(DataCadastro) %>%
+  summarise(casos = n(),
+            casos_ativos = sum(Status == "Ativo"),
+            obitos = sum(Status == "Óbito"),
+            pct_obitos = sum(Status == "Óbito") / sum(df$Status == "Óbito"),
+            mortalidade = obitos / casos,
+            pct_comorbidade = sum(Comorbidade == 1) / casos,
+            pct_mulheres = sum(Sexo == "Feminino")/casos,
+            pct_homens = 1 - pct_mulheres
+  )
+
 # Visualização gráfica.
-esquisser(data = df)
+#esquisser(data = df)
 
 df %>%
  filter(!(UF %in% "")) %>%
@@ -147,10 +160,6 @@ df %>%
 #  mutate(Comorbidade = as.factor(df$Comorbidade))
 
 # Casos ativos
-df %>%
-  filter(!(UF %in% "")) %>%
-  ggplot() +
-  aes(x = DataCadastro, fill = Status) +
-  geom_bar() +
-  scale_fill_hue() +
-  theme_minimal()
+grouped_by_Data %>%
+  ggplot(aes(x = DataCadastro, y = casos)) +
+  geom_bar(stat = "identity", fill = "blue")
