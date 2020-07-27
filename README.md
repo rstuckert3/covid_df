@@ -28,4 +28,4 @@ O CSV é composto das colunas abaixo:
 * Outros = Apresenta outras comorbidades?
 * Cardiovasculopatia = Apresenta cardiovascuolopatia? (Sim, Não)
 
-* ¹: anteriormente, a variável "Óbito" se chamada "Estado Saúde" e constava se a pessoa tinha ido a óbito, se estava internada (Leve, Moderado, Grave), se era um caso ativo, ou se estava recuperada (viva após cerca de duas semanas de contaminação). A mudança passou a valer a partir do dia 2020-07-10.
+¹: anteriormente, a variável "Óbito" se chamada "Estado Saúde" e constava se a pessoa tinha ido a óbito, se estava internada (Leve, Moderado, Grave), se era um caso ativo, ou se estava recuperada (viva após uma semana de contaminação). A mudança passou a valer a partir do dia 2020-07-10.
