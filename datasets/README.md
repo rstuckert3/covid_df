@@ -23,6 +23,7 @@ O CSV é composto das colunas abaixo:
 * Outros² = Apresenta outras comorbidades?
 * Cardiovasculopatia² = Apresenta cardiovascuolopatia? (Sim, Não)
 
+
 ¹: anteriormente, a variável "Óbito" se chamada "Estado Saúde" e constava se a pessoa tinha ido a óbito, se estava internada (Leve, Moderado, Grave), se era um caso ativo, ou se estava recuperada (viva após uma semana de contaminação). A mudança passou a valer a partir do dia 2020-07-10.
 
 ²: Ao que tudo indica, inicialmente, a SESDF registrava os dados sobre presença de comorbidades (Sim / Não) apenas quando a pessoa apresentava positivo para alguma, deixando as informações para as demais pessoas todas como NA. A partir do final de abril/2020, o protocolo parece ter mudado, de modo que um mesmo indivíduo com "Sim" para alguma comorbidade poderia ter "Não" e NA para as demais. Desse modo, optamos por considerar todos os NA's como "Não" no tratamento dos dados.
