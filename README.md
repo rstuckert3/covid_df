@@ -1,6 +1,6 @@
 # Análise dos dados da covid no Distrito Federal (DF)
 
-O script baixa os dados com a série histórica da Secretaria de Saúde do Distrito Federal (SESDF) das informações referentes aos casos de coronavírus no Distrito Federal. Os dados são obtidos por meio do [Painel COVID-19 no Distrito Federal](https://covid19.ssp.df.gov.br/extensions/covid19/covid19.html#/).
+O caderno do Jupyter Notebook acima (covid_notebook.ipynb) baixa os dados com a série histórica da Secretaria de Saúde do Distrito Federal (SESDF) das informações referentes aos casos de coronavírus no Distrito Federal. Os dados são obtidos por meio do [Painel COVID-19 no Distrito Federal](https://covid19.ssp.df.gov.br/extensions/covid19/covid19.html#/).
 
 Cabe ressaltar que, ao que tudo indica, inicialmente, a SESDF registrava os dados sobre presença de comorbidades (Sim / Não) apenas quando a pessoa apresentava positivo para alguma, deixando as informações para as demais pessoas todas como NA. A partir do final de abril/2020, o protocolo parece ter mudado, de modo que um mesmo indivíduo com "Sim" para alguma comorbidade poderia ter "Não" e NA para as demais. Desse modo, optamos por considerar todos os NA's como "Não" no tratamento dos dados.
 
