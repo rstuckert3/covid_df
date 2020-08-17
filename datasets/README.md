@@ -1,5 +1,5 @@
 ## Dados Abertos
-Para assegurar a disponibilidade dos dados, foram baixados os dados disponíveis no dia 2020-08-06 às 18:00 (UTC-3). Cabe ressaltar que a Secretaria de Saúde do Distrito Federal (SESDF) realiza duas atualizações diárias: uma às 12:00, e outra às 18:00.
+Para assegurar a disponibilidade dos dados, foram baixados os dados disponíveis no dia 2020-08-17 às 18:00 (UTC-3). Cabe ressaltar que a Secretaria de Saúde do Distrito Federal (SESDF) realiza duas atualizações diárias: uma às 12:00, e outra às 18:00.
 Os dados mais recentes podem ser acessados no [site da Secretaria de Segurança Pública do DF](https://covid19.ssp.df.gov.br/resources/dados/dados-abertos.csv?param=[random]). 
 
 ### Colunas
@@ -30,4 +30,4 @@ O CSV é composto das colunas abaixo:
 
 
 ## Georref
-A pasta "georref" contém dados das coordenadas geoespaciais das Regiões Administrativas do Distrito Federal. Esses dados foram obtidos junto ao Geoportal da Secretaria de Desenvolvimento Urbano e Habitação (SEDUH), e podem ser encontrados no seguinte [link](https://www.geoportal.seduh.df.gov.br/mapa/#)
+A pasta "georref" contém dados das coordenadas geoespaciais das Regiões Administrativas do Distrito Federal. Esses dados foram obtidos junto ao Geoportal da Secretaria de Desenvolvimento Urbano e Habitação (SEDUH), e podem ser encontrados no seguinte [link](https://www.geoportal.seduh.df.gov.br/mapa/#).
