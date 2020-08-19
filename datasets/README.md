@@ -31,3 +31,7 @@ O CSV é composto das colunas abaixo:
 
 ## Georref
 A pasta "georref" contém dados das coordenadas geoespaciais das Regiões Administrativas do Distrito Federal. Esses dados foram obtidos junto ao Geoportal da Secretaria de Desenvolvimento Urbano e Habitação (SEDUH), e podem ser encontrados no seguinte [link](https://www.geoportal.seduh.df.gov.br/mapa/#).
+
+
+## População
+O arquivo "populacao.csv" contém a população estimada de cada Região Administrativa, segundo a Pesquisa Distrital por Amostra de Domicílios (PDAD) da Companhia de Planejamento do Distrito Federal (CODEPLAN). Os dados são de 2018 - ano mais recente -, e foram obtidos nas estimativas da Nota Técnica de compatibilização entre projeções populacionais, que já levam em conta que de 2018 para 2020 o DF passou de 31 para 33 RAs.
