@@ -5,10 +5,13 @@ library(ggrepel) # Labels sem amontoar uma na outra.
 library(sf) # Geoespacial
 
 # Gifs
-library(gganimate)
-library(hrbrthemes)
+library(gganimate) # Gifs
+library(hrbrthemes) # Temas para o ggplot
 library(transformr) # Para o animate de um objeto sf
 library(gifski) # Para que o gganimate crie gifs, e não arquivos png
+
+
+#### TRATAMENTO DOS DADOS ####
 
 
 #file <- "https://covid19.ssp.df.gov.br/resources/dados/dados-abertos.csv"
@@ -43,7 +46,6 @@ df <- df %>%
 
 
 ##### FUNÇÕES #####
-
 
 
 generate_days_RA_df <- function(first_day, last_day){
@@ -150,9 +152,15 @@ generate_df <- function(df, first_day, last_day, moving_window = 14,
   # df = dataframe original
   # fist_day, last_day = primeiro e último dias
   # moving_window = nº de dias da janela móvel
-  # option = se contar pela data dos primeiros "sintomas", ou pela "confirmacao"
+  # option = se contar pela data dos primeiros "sintomas", ou pela "confirmacao" (aceita tb "cadastro")
   # endereco_geo = endereço do arquivo com as coordenadas geográficas.
   
+  #Se a pessoa colocar o option como "cadastro", muda pra "confirmacao"
+  if (option == "cadastro"){
+    option <- "confirmacao"
+  }
+  
+  # Faz todo o procedimento
   my_df <- df
   df_days_RA <- generate_days_RA_df(first_day, last_day) # df de dias e RAs
   df_days_RA_cases <- generate_cases_df(df_days_RA, my_df, option) # acrescenta os casos
@@ -203,9 +211,6 @@ generate_caption <- function(option = "sintomas"){
 ##### INPUTS #####
 
 
-
-
-
 # Dados de interesse
 first_day <- as.Date("2020-02-01")
 last_day <- as.Date(last_update, format = '%d/%m/%Y')  
@@ -217,13 +222,17 @@ file_path <- "datasets/georref/Regiões Administrativas.shp" # Endereço dos dad
 df_final <- generate_df(df, first_day, last_day, moving_window = 14,
                      option = "sintomas", endereco_geo = file_path)
 
+# Caso queira por casos/100 mil habitantes
+#df_population <- data.table::fread("datasets/populacao.csv", encoding = "UTF-8")
+#df_final2 <- inner_join(df_final, df_population, by = "RA")
+
 # Cria o título e a caption do gráfico
 my_title <- generate_title(moving_window)
 my_caption <- generate_caption(option = opcao)
 
 
 
-#### PARTE GRÁFICA ###
+#### PARTE GRÁFICA ####
 
 
 # Para o gráfico não ter marcas nos eixos
@@ -231,35 +240,31 @@ no_axis <- theme(axis.title=element_blank(),
                  axis.text=element_blank(),
                  axis.ticks=element_blank())
 
-
-# Gif
-my_gif <- df_final %>%
-  filter(DataCadastro == as.Date("2020-07-31")) %>% # Datas a partir desse dia
+# Render com um único dia (para teste)
+my_gif_test <- df_final %>%
+  filter(DataCadastro == as.Date("2020-07-31")) %>% # Dia com vários casos já
   ggplot((aes(geometry = geometry, fill = roll.sum))) +
   geom_sf(size = 1L, stat = "sf") + # Coordenadas
-  geom_sf_text(aes(label = RA), size = 2.75) + # Nome das RAs
+  geom_sf_text(aes(label = RA), size = 3) + # Nome das RAs
   scale_fill_distiller(palette = "OrRd", direction = 1) + # Paleta de cores
   labs(title = my_title,
        subtitle='{frame_time}',
        fill = "Casos",
        caption = my_caption) +
   theme_minimal() + # Fundo branco
-  theme(plot.caption = element_text(hjust = 0)) + # Caption na esquerda
+  theme(plot.title = element_text(face = "bold"), # Título em negrito
+        plot.caption = element_text(hjust = 0)) + # Caption na esquerda
   no_axis
-  #+
-  # GGanimate agora:
-  transition_time(DataCadastro) +
-  ease_aes('linear')
 
-animate(my_gif, renderer = gifski_renderer(), fps = 13, 
-        width = 600, height = 450)
+my_gif_test
 
-
+  
+# Gif final
 my_gif <- df_final %>%
-  filter(DataCadastro == as.Date("2020-07-31")) %>% # Datas a partir desse dia
+  filter(DataCadastro >= as.Date("2020-04-01")) %>% # Datas a partir desse dia
   ggplot((aes(geometry = geometry, fill = roll.sum))) +
   geom_sf(size = 1L, stat = "sf") + # Coordenadas
-  geom_sf_text(aes(label = RA), check_overlap = TRUE, size = 2.75) + # Nome das RAs
+  geom_sf_text(aes(label = RA), check_overlap = TRUE, size = 3) + # Nome das RAs
   #ggrepel::geom_label_repel(aes(label = RA, geometry = geometry),
   #                          stat = "sf_coordinates",  min.segment.length = 0) +
   scale_fill_distiller(palette = "OrRd", direction = 1) + # Paleta de cores
@@ -268,17 +273,18 @@ my_gif <- df_final %>%
        fill = "Casos",
        caption = my_caption) +
   theme_minimal() + # Fundo branco
-  theme(plot.caption = element_text(hjust = 0)) + # Caption na esquerda
-  no_axis # +
+  theme(plot.title = element_text(face = "bold"), # Título em negrito
+        plot.caption = element_text(hjust = 0)) + # Caption na esquerda
+  no_axis +
+  # GGanimate agora:
+  transition_time(DataCadastro) +
+  ease_aes('linear') # Método de suavização
+
+
+# Salva na pasta e conta o tempo de execução
+start_time <- Sys.time()
+anim_save(file = "my_gif.gif", my_gif, renderer = gifski_renderer(), fps = 11, 
+          width = 600, height = 450)
+print(Sys.time() - start_time)
 
 my_gif  
-
-# GGanimate agora:
-  transition_time(DataCadastro) +
-  ease_aes('linear')
-
-animate(my_gif, renderer = gifski_renderer(), fps = 13, 
-        width = 600, height = 450)
-
-
-my_gif
