@@ -6,7 +6,6 @@ library(sf) # Geoespacial
 
 # Gifs
 library(gganimate) # Gifs
-library(hrbrthemes) # Temas para o ggplot
 library(transformr) # Para o animate de um objeto sf
 library(gifski) # Para que o gganimate crie gifs, e não arquivos png
 
@@ -14,8 +13,8 @@ library(gifski) # Para que o gganimate crie gifs, e não arquivos png
 #### TRATAMENTO DOS DADOS ####
 
 
-#file <- "https://covid19.ssp.df.gov.br/resources/dados/dados-abertos.csv"
-file <- "datasets/dados-abertos.csv"
+file <- "https://covid19.ssp.df.gov.br/resources/dados/dados-abertos.csv"
+#file <- "datasets/dados-abertos.csv"
 df <- data.table::fread(file, encoding = "UTF-8", 
                         col.names = c("Data", "DataCadastro", "Sexo",
                                       "FaixaEtaria", "RA", "UF", "Obito", "DataPrimeirosintomas",
@@ -127,7 +126,7 @@ generate_moving_window <- function(df, moving_window){
   
   df_ma <- df %>% 
     group_by(RA) %>% 
-    mutate(roll.sum = c(casos[1:(moving_window-1)], zoo::rollapply(casos, moving_window, sum)))
+    mutate(casos_moveis = c(casos[1:(moving_window-1)], zoo::rollapply(casos, moving_window, sum)))
   
   return(df_ma)
 }
@@ -176,13 +175,20 @@ generate_df <- function(df, first_day, last_day, moving_window = 14,
   return(df_final)
 }
 
-generate_title <- function(moving_window = 14){
+
+generate_title <- function(moving_window = 14, cases = "total"){
   # Gera o título do gráfico, de acordo os inputs.
   
   # moving_window = janela móvel dos dados
-  # option = se os dados foram por data de confirmação, ou data dos primeiros sintomas.
+  # cases = se os casos serão medidos pelo nº total ("total"), ou por 100 mil habitantes ("100mil")
   
   titulo = "Casos de covid no DF por "
+  
+  # Se cases for igual a "100mil", já para por aqui e retorna.
+  if(cases == "100mil"){
+    titulo = stringr::str_c(titulo, "100 mil habitantes")
+    return(titulo)
+  }
   
   if(moving_window == 14){
     titulo = stringr::str_c(titulo, "quinzena móvel")
@@ -192,13 +198,14 @@ generate_title <- function(moving_window = 14){
   return(titulo)
 }
 
+
 generate_caption <- function(option = "sintomas"){
   # Gera a caption (mensagem no canto inferior) do gráfico
   
   # option = se os dados foram por data de confirmação, ou data dos primeiros sintomas.
   
   if(option == "sintomas"){
-    my_caption = "Nota: por data dos primeiros sintomas\nFonte: SESDF / SSP-DF \nElaboração: Rodrigo Stuckert"
+    my_caption = "Nota: por quinzena móvel, por data dos primeiros sintomas\nFonte: SESDF / SSP-DF \nElaboração: Rodrigo Stuckert"
   } else {
     my_caption = "Fonte: SESDF / SSP-DF \nElaboração: Rodrigo Stuckert"
   }
@@ -215,20 +222,28 @@ generate_caption <- function(option = "sintomas"){
 first_day <- as.Date("2020-02-01")
 last_day <- as.Date(last_update, format = '%d/%m/%Y')  
 opcao <- "sintomas"
+cases = "total"
 moving_window <- 14 # Janela móvel de casos
 file_path <- "datasets/georref/Regiões Administrativas.shp" # Endereço dos dados geoespaciais
+
 
 # Gera o dataframe com os casos móveis
 df_final <- generate_df(df, first_day, last_day, moving_window = 14,
                      option = "sintomas", endereco_geo = file_path)
 
-# Caso queira por casos/100 mil habitantes
-#df_population <- data.table::fread("datasets/populacao.csv", encoding = "UTF-8")
-#df_final2 <- inner_join(df_final, df_population, by = "RA")
+
+# Pega a população de cada RA, para gerar os casos por 100 mil habitantes
+df_population <- data.table::fread("datasets/populacao.csv", encoding = "UTF-8")
+df_population <- df_population %>%
+  select(-c("pop_pct"))
+df_final_pop <- inner_join(df_final, df_population, by = "RA") %>%
+  mutate(casos_moveis_100mil = (100000 * (casos_moveis / pop)))
+View(df_final_pop[, c(1, 2, 3, 4, 6, 7)])
+
 
 # Cria o título e a caption do gráfico
 my_title <- generate_title(moving_window)
-my_caption <- generate_caption(option = opcao)
+my_caption <- generate_caption(option = opcao, cases = "total")
 
 
 
@@ -241,11 +256,11 @@ no_axis <- theme(axis.title=element_blank(),
                  axis.ticks=element_blank())
 
 # Render com um único dia (para teste)
-my_gif_test <- df_final %>%
-  filter(DataCadastro == as.Date("2020-07-31")) %>% # Dia com vários casos já
-  ggplot((aes(geometry = geometry, fill = roll.sum))) +
+my_gif_test <- df_final_pop %>%
+  filter(DataCadastro == as.Date("2020-07-31")) %>% # Dia que já tinha vários casos
+  ggplot((aes(geometry = geometry, fill = casos_moveis))) +
   geom_sf(size = 1L, stat = "sf") + # Coordenadas
-  geom_sf_text(aes(label = RA), size = 3) + # Nome das RAs
+  geom_sf_text(aes(label = RA), size = 3, check_overlap = TRUE) + # Nome das RAs
   scale_fill_distiller(palette = "OrRd", direction = 1) + # Paleta de cores
   labs(title = my_title,
        subtitle='{frame_time}',
@@ -260,15 +275,18 @@ my_gif_test
 
   
 # Gif final
-my_gif <- df_final %>%
+
+my_caption <- generate_caption(option = opcao, cases = "100mil")
+
+my_gif_pop <- df_final_pop %>%
   filter(DataCadastro >= as.Date("2020-04-01")) %>% # Datas a partir desse dia
-  ggplot((aes(geometry = geometry, fill = roll.sum))) +
+  ggplot((aes(geometry = geometry, fill = casos_moveis_100mil))) +
   geom_sf(size = 1L, stat = "sf") + # Coordenadas
   geom_sf_text(aes(label = RA), check_overlap = TRUE, size = 3) + # Nome das RAs
   #ggrepel::geom_label_repel(aes(label = RA, geometry = geometry),
   #                          stat = "sf_coordinates",  min.segment.length = 0) +
   scale_fill_distiller(palette = "OrRd", direction = 1) + # Paleta de cores
-  labs(title = my_title,
+  labs(title = "Casos de covid no DF por 100mil habitantes",
        subtitle='{frame_time}',
        fill = "Casos",
        caption = my_caption) +
@@ -281,9 +299,10 @@ my_gif <- df_final %>%
   ease_aes('linear') # Método de suavização
 
 
+
 # Salva na pasta e conta o tempo de execução
 start_time <- Sys.time()
-anim_save(file = "my_gif.gif", my_gif, renderer = gifski_renderer(), fps = 11, 
+anim_save(file = "my_gif_pop.gif", my_gif_pop, renderer = gifski_renderer(), fps = 11, 
           width = 600, height = 450)
 print(Sys.time() - start_time)
 
